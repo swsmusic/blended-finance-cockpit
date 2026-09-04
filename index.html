@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#070809" />
+<title>Finance Cockpit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #070809;
+  --bg-elev: #0c0d10;
+  --panel: rgba(255, 255, 255, 0.026);
+  --panel-strong: rgba(255, 255, 255, 0.04);
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-2: rgba(255, 255, 255, 0.11);
+  --hairline-3: rgba(255, 255, 255, 0.18);
+  --text: #f1f2f4;
+  --text-soft: #c9ccd2;
+  --text-mute: #8b8f97;
+  --text-dim: #5f636b;
+  --accent: #8c8cf9;
+  --accent-soft: rgba(140, 140, 249, 0.16);
+  --good: #4ade80;
+  --good-soft: rgba(74, 222, 128, 0.12);
+  --bad: #f87171;
+  --bad-soft: rgba(248, 113, 113, 0.12);
+  --warn: #fbbf24;
+  --warn-soft: rgba(251, 191, 36, 0.12);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 1px 2px rgba(0, 0, 0, 0.5), 0 24px 60px -24px rgba(0, 0, 0, 0.6);
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(1100px 600px at 50% -200px, rgba(140, 140, 249, 0.13), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(74, 222, 128, 0.04), transparent 60%),
+    radial-gradient(900px 600px at 0% 30%, rgba(248, 113, 113, 0.03), transparent 60%),
+    linear-gradient(180deg, #070809 0%, #08090b 40%, #070809 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+  opacity: 0.4;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  width: min(1080px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 22px 0 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  overflow-x: hidden;
+}
+
+.panel, .view, .stat, .rec, .rec-body, .rec-header-text, .section, .footer {
+  min-width: 0;
+}
+
+/* Open section: no card chrome — just generous vertical rhythm, a quiet eyebrow heading, and a hairline divider above. */
+.section { display: flex; flex-direction: column; gap: 16px; }
+.section.bordered { padding-top: 28px; border-top: 1px solid var(--hairline); }
+.section-eyebrow {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap;
+}
+.section-eyebrow h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.section-eyebrow .kicker {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  letter-spacing: 0;
+}
+
+/* ---------- NAV ---------- */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+.brand { display: flex; align-items: center; gap: 11px; }
+.mark {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, #b3b3ff 0%, var(--accent) 40%, #6366c9 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16) inset,
+    0 4px 14px rgba(140, 140, 249, 0.45),
+    0 0 30px rgba(140, 140, 249, 0.25);
+  position: relative;
+}
+.mark::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.05));
+  mix-blend-mode: overlay;
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-text b { font-size: 13.5px; font-weight: 600; letter-spacing: -0.015em; color: var(--text); }
+.brand-text span { font-size: 11px; color: var(--text-mute); letter-spacing: 0.02em; }
+.nav-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.timestamp { font-family: var(--font-mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline-2);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.pill .dot {
+  width: 6px; height: 6px; border-radius: 999px; background: currentColor;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.pill.good { color: var(--good); border-color: rgba(74, 222, 128, 0.32); background: var(--good-soft); }
+.pill.watch { color: var(--warn); border-color: rgba(251, 191, 36, 0.32); background: var(--warn-soft); }
+.pill.urgent { color: var(--bad); border-color: rgba(248, 113, 113, 0.34); background: var(--bad-soft); }
+.pill.ghost { color: var(--text-mute); background: transparent; }
+
+/* ---------- HERO (the one true card) ---------- */
+.hero {
+  position: relative;
+  padding: 30px 30px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background:
+    radial-gradient(520px 320px at 0% 0%, rgba(140, 140, 249, 0.14), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 30%);
+  mix-blend-mode: overlay;
+}
+.hero-kicker {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11.5px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+}
+.hero-kicker::before {
+  content: ''; width: 18px; height: 1px; background: var(--hairline-3); display: inline-block;
+}
+.hero-runway {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  font-family: var(--font-sans);
+  margin: 6px 0 4px;
+  line-height: 0.9;
+}
+.hero-runway .num {
+  font-size: clamp(72px, 12vw, 132px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  background: linear-gradient(180deg, #ffffff 0%, #c8cad1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+.hero-runway .unit {
+  font-size: 16px;
+  color: var(--text-mute);
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+.hero-note {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 44ch;
+}
+.hero-foot {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.hero-foot .chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-soft);
+  letter-spacing: 0;
+}
+.hero-foot .chip .label { color: var(--text-mute); font-family: var(--font-sans); letter-spacing: 0.04em; text-transform: uppercase; font-size: 10.5px; }
+
+/* ---------- RECOMMENDATIONS (open section, not a card) ---------- */
+.recommendations { display: flex; flex-direction: column; gap: 18px; }
+.rec-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.rec-header-text h1 {
+  font-size: 17.5px;
+  margin: 0 0 6px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.25;
+}
+.rec-header-text p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-mute);
+  line-height: 1.5;
+  max-width: 56ch;
+}
+.rec-list {
+  display: flex;
+  flex-direction: column;
+}
+.rec {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--hairline);
+  position: relative;
+}
+.rec:first-child { border-top: 0; padding-top: 4px; }
+.rec-marker { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 2px; }
+.rec-index {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+.rec-dot {
+  width: 7px; height: 7px; border-radius: 999px;
+  background: var(--text-dim);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.03);
+}
+.rec.urgent .rec-dot { background: var(--bad); box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12), 0 0 16px rgba(248, 113, 113, 0.5); }
+.rec.watch .rec-dot { background: var(--warn); box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.12); }
+.rec.good .rec-dot { background: var(--good); box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12); }
+.rec-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.rec-top h3 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.015em; color: var(--text); line-height: 1.3; }
+.rec-why { margin: 4px 0 8px; font-size: 13px; line-height: 1.5; color: var(--text-mute); }
+.rec-do { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-soft); }
+.rec-do-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(140, 140, 249, 0.28);
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-right: 8px;
+  vertical-align: 2px;
+}
+
+.severity {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--hairline-2);
+  color: var(--text-mute);
+  background: rgba(255, 255, 255, 0.025);
+  flex-shrink: 0;
+}
+.severity.urgent { color: var(--bad); border-color: rgba(248, 113, 113, 0.32); background: var(--bad-soft); }
+.severity.watch { color: var(--warn); border-color: rgba(251, 191, 36, 0.32); background: var(--warn-soft); }
+.severity.good { color: var(--good); border-color: rgba(74, 222, 128, 0.32); background: var(--good-soft); }
+
+/* ---------- VIEW RAIL (3-up, no boxes) ---------- */
+.views {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+.view {
+  padding: 4px 22px;
+  position: relative;
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+.view + .view { border-left: 1px solid var(--hairline); }
+.view-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.view-name { font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+.view-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+.view-runway { display: flex; align-items: baseline; gap: 7px; margin: 8px 0 6px; }
+.view-runway .num {
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.view.urgent .view-runway .num { color: var(--bad); }
+.view.watch .view-runway .num { color: var(--warn); }
+.view.good .view-runway .num { color: var(--good); }
+.view-runway .unit { font-size: 12px; color: var(--text-dim); }
+.view-note { margin: 0 0 14px; color: var(--text-dim); font-size: 12px; line-height: 1.5; }
+.view-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin: 0; }
+.view-stats > div { display: flex; flex-direction: column; gap: 2px; }
+.view-stats dt {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+  font-weight: 500;
+}
+.view-stats dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-soft);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- STAT STRIP (flat metric row, vertical hairlines) ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+}
+.stat {
+  padding: 0 18px;
+  position: relative;
+  min-width: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.stat + .stat { border-left: 1px solid var(--hairline); }
+.stat-label {
+  display: block;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.stat-value {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.stat-sub { display: block; color: var(--text-dim); font-size: 11px; line-height: 1.4; }
+.stat.good .stat-value { color: var(--good); }
+.stat.warn .stat-value { color: var(--warn); }
+.stat.bad .stat-value { color: var(--bad); }
+
+/* ---------- FLOW ---------- */
+.flow { display: flex; flex-direction: column; gap: 8px; }
+.flow-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 78px;
+  gap: 14px;
+  align-items: center;
+}
+.flow-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 0;
+}
+.bars { display: grid; grid-template-rows: 1fr 1fr; gap: 3px; }
+.bar-track {
+  position: relative;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-track i {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  border-radius: 999px;
+  display: block;
+}
+.bar-track .inc { background: linear-gradient(90deg, rgba(74, 222, 128, 0.45), var(--good)); box-shadow: 0 0 8px rgba(74, 222, 128, 0.3); }
+.bar-track .out { background: linear-gradient(90deg, rgba(248, 113, 113, 0.45), var(--bad)); box-shadow: 0 0 8px rgba(248, 113, 113, 0.3); }
+.flow-net {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.good { color: var(--good); }
+.bad { color: var(--bad); }
+
+/* ---------- ALERT (CFO interpretation detail) ---------- */
+.alert {
+  padding: 14px 0;
+  border-top: 1px solid var(--hairline);
+}
+.alert:first-child { border-top: 0; padding-top: 0; }
+.alert-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.alert-top strong { font-size: 13.5px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+.alert-why { margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: var(--text-mute); }
+.alert-next { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-soft); }
+.alert-next-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(140, 140, 249, 0.28);
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-right: 8px;
+  vertical-align: 2px;
+}
+
+/* ---------- TWO-COL OPEN LAYOUT (no boxes, hairline between) ---------- */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.split > .section { padding: 0 24px; }
+.split > .section:first-child { padding-left: 0; }
+.split > .section:last-child { padding-right: 0; border-left: 1px solid var(--hairline); padding-left: 28px; }
+
+/* ---------- ROW ---------- */
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  border-top: 1px solid var(--hairline);
+}
+.row:first-of-type { border-top: 0; padding-top: 4px; }
+.row-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.row-main strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.row-main small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-mute);
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+.row-amount {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.row-amount.good { color: var(--good); }
+.row-amount.bad { color: var(--bad); }
+
+.empty {
+  padding: 24px 8px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+/* ---------- FOOTER (flat, no card) ---------- */
+.footer {
+  margin-top: 6px;
+  padding-top: 24px;
+  border-top: 1px solid var(--hairline);
+  display: flex; flex-direction: column; gap: 6px;
+  align-items: center;
+  text-align: center;
+}
+.footer p { margin: 0; font-size: 11.5px; color: var(--text-dim); line-height: 1.55; max-width: 62ch; }
+.footer .footer-meta { color: var(--text-dim); font-size: 10.5px; font-family: var(--font-mono); letter-spacing: 0; }
+
+/* ---------- MOBILE ---------- */
+@media (max-width: 960px) {
+  .page { gap: 32px; }
+  .views { grid-template-columns: 1fr; }
+  .view { padding: 18px 0; }
+  .view + .view { border-left: 0; border-top: 1px solid var(--hairline); }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .stat { padding: 14px 14px 14px 0; }
+  .stat + .stat { border-left: 0; }
+  .stat:nth-child(2) { padding-right: 0; }
+  .stat:nth-child(3), .stat:nth-child(4) { border-top: 1px solid var(--hairline); padding-top: 14px; }
+  .stat:nth-child(odd) { border-right: 1px solid var(--hairline); padding-right: 14px; padding-left: 0; }
+  .stat:nth-child(even) { padding-left: 14px; padding-right: 0; }
+  .split { grid-template-columns: 1fr; gap: 32px; }
+  .split > .section, .split > .section:first-child, .split > .section:last-child {
+    padding: 0; border-left: 0;
+  }
+  .split > .section:last-child { padding-top: 28px; border-top: 1px solid var(--hairline); }
+}
+
+@media (max-width: 640px) {
+  .page { width: calc(100% - 28px); padding: 16px 0 56px; gap: 28px; }
+  .nav { flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 14px; }
+  .nav-meta { width: 100%; justify-content: flex-start; }
+  .hero { padding: 22px 20px 20px; border-radius: var(--radius-md); }
+  .hero-runway .num { font-size: clamp(64px, 17vw, 96px); }
+  .hero-note, .rec p, .next, .alert p, .row strong, .row small { overflow-wrap: anywhere; }
+  .hero-foot { gap: 6px; }
+  .hero-foot .chip { height: 28px; padding: 0 10px; font-size: 11.5px; }
+  .rec { grid-template-columns: 24px 1fr; gap: 10px; padding: 14px 0; }
+  .rec-marker { padding-top: 0; }
+  .rec-header { flex-wrap: wrap; }
+  .rec-header .pill { max-width: 100%; }
+  .rec-top { flex-wrap: wrap; gap: 6px; }
+  .chip { max-width: 100%; }
+  .view-runway .num { font-size: 40px; }
+  .flow-row { grid-template-columns: 42px 1fr 62px; gap: 10px; }
+  .flow-date { font-size: 10.5px; }
+  .row { padding: 12px 0; }
+}
+
+@media (max-width: 420px) {
+  .page { width: calc(100% - 22px); }
+  .stats { grid-template-columns: 1fr; }
+  .stat, .stat:nth-child(odd), .stat:nth-child(even) {
+    padding: 14px 0; border: 0; border-top: 1px solid var(--hairline);
+  }
+  .stat:first-child { border-top: 0; padding-top: 4px; }
+  .view-stats { grid-template-columns: 1fr 1fr; }
+  .hero-runway .num { font-size: 64px; }
+  .view-runway .num { font-size: 38px; }
+  .section-eyebrow { gap: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill .dot { animation: none; }
+}
+
+@supports (font-variation-settings: normal) {
+  .hero-runway .num, .view-runway .num { font-variation-settings: 'wght' 480; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+  <header class="nav">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div class="brand-text"><b>Finance Cockpit</b><span>Blended runway · Public read-only</span></div>
+    </div>
+    <div class="nav-meta">
+      <span class="timestamp">Sep 4, 4:32 PM EST</span>
+      <span class="pill good"><span class="dot" aria-hidden="true"></span>Status: OK</span>
+    </div>
+  </header>
+
+  <article class="hero">
+    <div class="hero-kicker">Business adjusted runway</div>
+    <div class="hero-runway">
+      <span class="num">32.3</span>
+      <span class="unit">days</span>
+    </div>
+    <p class="hero-note">NMS cash divided by posted business outflow plus Meta and owner-pay commitments. This is the primary operating number.</p>
+    <div class="hero-foot">
+      <span class="chip"><span class="label">Adjusted runway</span>32.3 days · decision number</span>
+      <span class="chip"><span class="label">Posted runway</span>73.1 days · bank-posted only</span>
+      <span class="chip"><span class="label">Gap</span>-$103.18/day</span>
+    </div>
+  </article>
+
+  <section class="section recommendations">
+    <header class="rec-header">
+      <div class="rec-header-text">
+        <h1>Freeze spend until runway tops 21 days</h1>
+        <p>NMS has $2,832 cash and 14.5 days adjusted runway after $140/day commitments; Home has $258. Posture: protect cash, collect first, and cap ads until payback is visible.</p>
+      </div>
+      <span class="pill ghost">Heuristic</span>
+    </header>
+    <div class="rec-list"><article class="rec urgent">
+      <div class="rec-marker"><span class="rec-index">01</span><span class="rec-dot" aria-hidden="true"></span></div>
+      <div class="rec-body">
+        <div class="rec-top"><h3>Runway Shorten Critical</h3><span class="severity urgent">urgent</span></div>
+        <p class="rec-why">Adjusted runway fell to 11.7 days vs 39.6 posted – cash buffer eroding fast.</p>
+        <p class="rec-do"><span class="rec-do-label">Do</span>Review discretionary spend, pause non‑essential purchases, and explore short‑term revenue options to extend runway above 14 days. Owner: Diana.</p>
+      </div>
+    </article><article class="rec watch">
+      <div class="rec-marker"><span class="rec-index">02</span><span class="rec-dot" aria-hidden="true"></span></div>
+      <div class="rec-body">
+        <div class="rec-top"><h3>Owner Pay Impact</h3><span class="severity watch">watch</span></div>
+        <p class="rec-why">Steve&#39;s $1,800 bi‑monthly owner pay ($120/day) consumes a third of NMS daily burn.</p>
+        <p class="rec-do"><span class="rec-do-label">Do</span>Discuss timing or temporary reduction of owner draws until runway stabilizes above 14 days. Owner: Steve.</p>
+      </div>
+    </article><article class="rec watch">
+      <div class="rec-marker"><span class="rec-index">03</span><span class="rec-dot" aria-hidden="true"></span></div>
+      <div class="rec-body">
+        <div class="rec-top"><h3>Meta Ad Spend Review</h3><span class="severity watch">watch</span></div>
+        <p class="rec-why">Meta/Facebook ads spending $20/day with no revenue yet adds to cash outflow.</p>
+        <p class="rec-do"><span class="rec-do-label">Do</span>Pause or re‑allocate ad budget and evaluate ROI before resuming spend. Owner: Diana.</p>
+      </div>
+    </article></div>
+  </section>
+
+  <section class="section bordered">
+    <div class="section-eyebrow"><h2>Runway by view</h2><span class="kicker">Business · Home · Blended</span></div>
+    <div class="views">
+      <article class="view business good">
+    <header class="view-head"><span class="view-name">Business</span><span class="view-kicker">Adjusted runway</span></header>
+    <div class="view-runway"><span class="num">32.3</span><span class="unit">days</span></div>
+    <p class="view-note">NMS only. Owner pay counts as cash leaving NMS.</p>
+    <dl class="view-stats">
+      <div><dt>Cash</dt><dd>$5,960.74</dd></div>
+      <div><dt>In / day</dt><dd>$81.65</dd></div>
+      <div><dt>Out / day</dt><dd>$81.49</dd></div>
+      <div><dt>Committed</dt><dd>$103.33</dd></div>
+    </dl>
+  </article>
+      <article class="view home ">
+    <header class="view-head"><span class="view-name">Home</span><span class="view-kicker">Gross runway</span></header>
+    <div class="view-runway"><span class="num">—</span><span class="unit">days</span></div>
+    <p class="view-note">Household cash pressure, shown separately.</p>
+    <dl class="view-stats">
+      <div><dt>Cash</dt><dd>$658.43</dd></div>
+      <div><dt>In / day</dt><dd>$0.00</dd></div>
+      <div><dt>Out / day</dt><dd>$0.00</dd></div>
+      <div><dt>Committed</dt><dd>$0.00</dd></div>
+    </dl>
+  </article>
+      <article class="view blended good">
+    <header class="view-head"><span class="view-name">Blended</span><span class="view-kicker">Adjusted runway</span></header>
+    <div class="view-runway"><span class="num">65.2</span><span class="unit">days</span></div>
+    <p class="view-note">NMS + Home. Owner pay internal; Meta external.</p>
+    <dl class="view-stats">
+      <div><dt>Cash</dt><dd>$6,619.17</dd></div>
+      <div><dt>In / day</dt><dd>$81.65</dd></div>
+      <div><dt>Out / day</dt><dd>$81.49</dd></div>
+      <div><dt>Committed</dt><dd>$20.00</dd></div>
+    </dl>
+  </article>
+    </div>
+  </section>
+
+  <section class="section bordered">
+    <div class="section-eyebrow"><h2>Daily averages</h2><span class="kicker">30-day visible mean</span></div>
+    <div class="stats">
+      <div class="stat good"><span class="stat-label">Business in</span><strong class="stat-value">$81.65/d</strong><small class="stat-sub">Visible NMS inflow.</small></div>
+      <div class="stat warn"><span class="stat-label">Business out</span><strong class="stat-value">$184.82/d</strong><small class="stat-sub">Posted + Meta + owner pay.</small></div>
+      <div class="stat "><span class="stat-label">Home out</span><strong class="stat-value">$0.00/d</strong><small class="stat-sub">Household-only outflow.</small></div>
+      <div class="stat "><span class="stat-label">Blended out</span><strong class="stat-value">$101.49/d</strong><small class="stat-sub">NMS + Home external burn.</small></div>
+    </div>
+  </section>
+
+  <section class="split">
+    <div class="section">
+      <div class="section-eyebrow"><h2>Income vs outflow</h2><span class="kicker">Last 12 days</span></div>
+      <div class="flow"><div class="flow-row">
+      <span class="flow-date">Aug 22</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:0%"></i></span><span class="bar-track"><i class="out" style="width:1.5589627495369418%"></i></span></div>
+      <b class="flow-net bad">-$15</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 23</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:0%"></i></span><span class="bar-track"><i class="out" style="width:8.849557522123893%"></i></span></div>
+      <b class="flow-net bad">-$86</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 25</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:32.87919324963984%"></i></span><span class="bar-track"><i class="out" style="width:1.6464293064416546%"></i></span></div>
+      <b class="flow-net good">$304</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 26</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:35.74912533443096%"></i></span><span class="bar-track"><i class="out" style="width:46.130891129862114%"></i></span></div>
+      <b class="flow-net bad">-$101</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 27</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:2.8699320847911096%"></i></span><span class="bar-track"><i class="out" style="width:4.4134595595801605%"></i></span></div>
+      <b class="flow-net bad">-$15</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 28</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:0%"></i></span><span class="bar-track"><i class="out" style="width:1.5435274747890515%"></i></span></div>
+      <b class="flow-net bad">-$15</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 29</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:0%"></i></span><span class="bar-track"><i class="out" style="width:1.5435274747890515%"></i></span></div>
+      <b class="flow-net bad">-$15</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 30</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:0%"></i></span><span class="bar-track"><i class="out" style="width:2.8308293887631204%"></i></span></div>
+      <b class="flow-net bad">-$28</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Aug 31</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:37.248405021609386%"></i></span><span class="bar-track"><i class="out" style="width:63.03560403375181%"></i></span></div>
+      <b class="flow-net bad">-$251</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Sep 1</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:37.248405021609386%"></i></span><span class="bar-track"><i class="out" style="width:40.84996912945051%"></i></span></div>
+      <b class="flow-net bad">-$35</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Sep 2</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:0.21609384647046723%"></i></span><span class="bar-track"><i class="out" style="width:0%"></i></span></div>
+      <b class="flow-net good">$2</b>
+    </div><div class="flow-row">
+      <span class="flow-date">Sep 3</span>
+      <div class="bars"><span class="bar-track"><i class="inc" style="width:100%"></i></span><span class="bar-track"><i class="out" style="width:3.0592714550319%"></i></span></div>
+      <b class="flow-net good">$942</b>
+    </div></div>
+    </div>
+    <div class="section">
+      <div class="section-eyebrow"><h2>CFO interpretation</h2><span class="kicker">LLM read</span></div>
+      <article class="alert"><header class="alert-top"><strong>Runway Shorten Critical</strong><span class="severity urgent">urgent</span></header><p class="alert-why">Adjusted runway fell to 11.7 days vs 39.6 posted – cash buffer eroding fast.</p><p class="alert-next"><span class="alert-next-label">Next</span>Review discretionary spend, pause non‑essential purchases, and explore short‑term revenue options to extend runway above 14 days. Owner: Diana.</p></article><article class="alert"><header class="alert-top"><strong>Owner Pay Impact</strong><span class="severity watch">watch</span></header><p class="alert-why">Steve&#39;s $1,800 bi‑monthly owner pay ($120/day) consumes a third of NMS daily burn.</p><p class="alert-next"><span class="alert-next-label">Next</span>Discuss timing or temporary reduction of owner draws until runway stabilizes above 14 days. Owner: Steve.</p></article><article class="alert"><header class="alert-top"><strong>Meta Ad Spend Review</strong><span class="severity watch">watch</span></header><p class="alert-why">Meta/Facebook ads spending $20/day with no revenue yet adds to cash outflow.</p><p class="alert-next"><span class="alert-next-label">Next</span>Pause or re‑allocate ad budget and evaluate ROI before resuming spend. Owner: Diana.</p></article>
+    </div>
+  </section>
+
+  <section class="split">
+    <div class="section">
+      <div class="section-eyebrow"><h2>Known commitments</h2><span class="kicker">Business runway overlay</span></div>
+      <div class="row"><div class="row-main"><strong>Steve owner pay</strong><small>Steve corrected owner-pay planning number on 2026-07-08 to $2,500/month from NMS to Home; this matters for NMS runway/Home cash planning.</small></div><b class="row-amount ">$83.33/day</b></div>
+    </div>
+    <div class="section">
+      <div class="section-eyebrow"><h2>Cash accounts</h2><span class="kicker">Included in cash</span></div>
+      <div class="row"><div class="row-main"><strong>Business Checking 2807 (2807)</strong><small>Truist · nms / nms_truist_operating</small></div><b class="row-amount ">$3,140.89</b></div><div class="row"><div class="row-main"><strong>Operating Expenses #10 (0162)</strong><small>Relay Financial · nms / nms_spendable_relay</small></div><b class="row-amount ">$1,446.30</b></div><div class="row"><div class="row-main"><strong>Income Account #8 (9545)</strong><small>Relay Financial · nms / nms_spendable_relay</small></div><b class="row-amount ">$971.80</b></div><div class="row"><div class="row-main"><strong>Personal Checking 9381 (9381)</strong><small>Truist · home / home_operating</small></div><b class="row-amount ">$658.43</b></div><div class="row"><div class="row-main"><strong>Debt Buster (0322)</strong><small>Relay Financial · nms / nms_relay_debt_cash</small></div><b class="row-amount ">$401.75</b></div><div class="row"><div class="row-main"><strong>Investment Account (9546)</strong><small>Relay Financial · nms / nms_spendable_relay</small></div><b class="row-amount ">$0.00</b></div><div class="row"><div class="row-main"><strong>Owners Pay (0163)</strong><small>Relay Financial · nms / nms_spendable_relay</small></div><b class="row-amount ">$0.00</b></div>
+    </div>
+  </section>
+
+  <section class="section bordered">
+    <div class="section-eyebrow"><h2>Recent transactions</h2><span class="kicker">Latest SimpleFIN detail</span></div>
+    <div class="row"><div class="row-main"><strong>Sep 3 · Zoho Corporation</strong><small>Income Account #8 (9545) · Income · nms</small></div><b class="row-amount good">$971.80</b></div><div class="row"><div class="row-main"><strong>Sep 3 · Cloudflare | Address:</strong><small>Operating Expenses #10 (0162) · Outflow · nms</small></div><b class="row-amount bad">-$10.46</b></div><div class="row"><div class="row-main"><strong>Sep 3 · Creativemar | Address:</strong><small>Operating Expenses #10 (0162) · Outflow · nms</small></div><b class="row-amount bad">-$19.27</b></div><div class="row"><div class="row-main"><strong>Sep 2 · Apple</strong><small>Operating Expenses #10 (0162) · Income · nms</small></div><b class="row-amount good">$2.10</b></div><div class="row"><div class="row-main"><strong>Sep 1 · Steve Schramm Transfer Automation Empty Income Account</strong><small>Income Account #8 (9545) · Outflow · nms</small></div><b class="row-amount ">-$361.98</b></div><div class="row"><div class="row-main"><strong>Sep 1 · Steve Schramm Transfer Automation Empty Income Account</strong><small>Operating Expenses #10 (0162) · Income · nms</small></div><b class="row-amount ">$361.98</b></div><div class="row"><div class="row-main"><strong>Sep 1 · Mailgun.com</strong><small>Operating Expenses #10 (0162) · Outflow · nms</small></div><b class="row-amount bad">-$35.00</b></div><div class="row"><div class="row-main"><strong>Aug 31 · Stripe</strong><small>Income Account #8 (9545) · Income · nms</small></div><b class="row-amount good">$91.37</b></div>
+  </section>
+
+  <footer class="footer">
+    <p>Public no-auth view. Numbers refresh automatically after each finance cron. No account credentials or secrets are exposed in this build.</p>
+    <span class="footer-meta">Built Sep 4, 4:32 PM EST · runway lookback 30d</span>
+  </footer>
+
+</main>
+</body>
+</html>
